@@ -15,7 +15,7 @@
     "serve:admin": "nx serve admin",
     "format": "prettier --write \"**/*.ts\"",
     "graph": "nx graph",
-    "typecheck": "nx run-many -t typecheck"
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",

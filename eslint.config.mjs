@@ -75,6 +75,9 @@ export default [
         // 应用工程：webpack 以 node 外置依赖运行，下列包为 NestJS 隐式运行时依赖
         // （platform-express 由 NestFactory 动态加载、tslib 由 importHelpers 注入、
         // reflect-metadata / rxjs 为 Nest 传递依赖），源码中无静态 import，故忽略。
+        // @app/common 为「源码直接消费」的 workspace 库（单 tsconfig 下不再独立 tsc 产出
+        // dist，而是经自定义条件由 webpack/jest 直接编译源码、无独立 build target），
+        // 但仍需在 package.json 中以 workspace:* 声明以建立 pnpm 链接与 TS 解析。
         files: [
             "**/apps/**/*.json"
         ],
@@ -86,6 +89,7 @@ export default [
                         "{projectRoot}/eslint.config.{js,cjs,mjs,ts,cts,mts}"
                     ],
                     ignoredDependencies: [
+                        "@app/common",
                         "@nestjs/platform-express",
                         "reflect-metadata",
                         "rxjs",

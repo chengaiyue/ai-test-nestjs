@@ -1,22 +1,36 @@
 {
-  "extends": "./tsconfig.base.json",
-  "compileOnSave": false,
-  "files": [],
-  "references": [
-    {
-      "path": "./apps/api-e2e"
+  "compilerOptions": {
+    "target": "es2022",
+    "lib": ["es2022"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "customConditions": ["ai-test-nestjs"],
+    "baseUrl": ".",
+    "paths": {
+      "@app/common": ["libs/common/src/index.ts"]
     },
-    {
-      "path": "./apps/api"
-    },
-    {
-      "path": "./apps/admin-e2e"
-    },
-    {
-      "path": "./apps/admin"
-    },
-    {
-      "path": "./libs/common"
-    }
-  ]
+
+    "strict": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "strictBindCallApply": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+
+    "isolatedModules": true,
+    "importHelpers": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "declaration": true,
+    "declarationMap": true,
+
+    "types": ["node", "jest"]
+  },
+  "include": ["apps/**/*.ts", "libs/**/*.ts", "*.ts"],
+  "exclude": ["**/dist", "**/out-tsc", "**/node_modules", "**/test-output"]
 }

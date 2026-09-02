@@ -23,7 +23,7 @@
 ├── libs/
 │   └── common/       # 共享库（CommonModule / CommonService），别名 @app/common
 ├── nx.json                 # Nx 配置（插件、targetDefaults、namedInputs、缓存）
-├── tsconfig.base.json      # 所有工程 tsconfig 的统一基准（被各工程 extends）
+├── tsconfig.json           # 全 workspace 唯一的 TS 配置（编译选项 + @app/common paths）
 ├── eslint.config.mjs       # 全 workspace 唯一的 ESLint 配置（含 JSON 依赖检查）
 ├── jest.preset.js          # @nx/jest 预设
 ├── jest.shared-config.js   # Jest 配置工厂（createUnitJestConfig / createE2eJestConfig）
@@ -33,16 +33,19 @@
 └── package.json
 ```
 
-工程配置采用 TS solution 风格：每个工程用自己的 `package.json`（`nx.targets` 内联）描述，
-并用各自的 `tsconfig.json` / `jest.config.cts` / `webpack.config.js` 作为 Nx 推断 target 的入口。
-这些入口文件只保留几行薄封装，**实际规则全部收口到根目录共享文件**：
+每个工程用自己的 `package.json`（`nx.targets` 内联）描述，并只保留 Nx 推断 target 所必需的
+薄入口（`jest.config.cts`、app 的 `webpack.config.js`）。**所有规则/预设/编译选项全部收口到根目录**：
 
+- tsconfig：全仓库只有根目录一个 `tsconfig.json`（含编译选项与 `@app/common` 的 `paths`），
+  子目录不再有任何 tsconfig。类型检查直接 `tsc --noEmit -p tsconfig.json`；webpack 的
+  `tsConfig` 也指向它。
 - Jest：`jest.config.cts` 仅调用 `jest.shared-config.js` 的工厂（单测传 `createUnitJestConfig`、
   e2e 传 `createE2eJestConfig`），SWC 配置统一读根 `.spec.swcrc`。
 - webpack：app 的 `webpack.config.js` 仅调用 `webpack.shared.js` 的 `createNestAppWebpackConfig({ root: __dirname })`。
-- ESLint：子工程不再放 `eslint.config.*`，Nx 自动用根 `eslint.config.mjs` 生成 lint target。
-- tsconfig：各工程 `extends` 根 `tsconfig.base.json`；`outDir`/`rootDir`/`include` 等路径项
-  按 TS 规则必须留在各工程（相对路径相对「定义它的文件」解析）。
+- ESLint：子工程不放 `eslint.config.*`，Nx 自动用根 `eslint.config.mjs` 生成 lint target。
+- workspace 库 `@app/common` 为**源码直接消费**：不再独立 tsc 产出 dist，而是由 webpack / jest
+  通过 `ai-test-nestjs` 自定义条件直接编译 TS 源码（webpack 的 `resolve.conditionNames`、
+  jest 的 `testEnvironmentOptions.customExportConditions`），因此库无需自己的 tsconfig / build target。
 
 ## 快速开始
 
@@ -93,24 +96,25 @@ export class AppModule {}
 ```
 
 `@app/common` 通过 pnpm `workspace:*` 协议链接（见 `apps/api/package.json`），
-开发时经 TS custom condition 直接解析到 `libs/common/src`，构建时由 webpack/tsc 处理。
+开发与构建时都经 `ai-test-nestjs` 自定义条件直接解析、编译 `libs/common/src` 的 TS 源码，
+不预先产出 dist。
 
 ## 新增工程
 
 ```bash
 # 新应用
 pnpm nx g @nx/nest:application apps/<name> --unitTestRunner=jest --linter=eslint
-# 新共享库（buildable，可自定义 import 别名）
-pnpm nx g @nx/nest:library libs/<name> --buildable --importPath=@app/<name> \
+# 新共享库（源码直接消费、非 buildable，自定义 import 别名）
+pnpm nx g @nx/nest:library libs/<name> --importPath=@app/<name> \
   --unitTestRunner=jest --linter=eslint
 ```
 
-新增库后运行 `pnpm nx sync` 同步 TS project references。
+生成器会在每个工程落下各自的 `tsconfig*.json`、`eslint.config.*`、`.spec.swcrc`、完整
+`jest.config.*` / `webpack.config.*`。为保持「一套配置」，新工程建好后请做以下收敛：
 
-生成器会在每个工程落下各自的 `eslint.config.*`、`.spec.swcrc`、完整 `jest.config.*` / `webpack.config.*`，
-为保持「一套配置」，新工程建好后请把它们收敛为薄封装：
-
-- 删除工程内 `eslint.config.*` 与 `.spec.swcrc`（统一走根配置）；
+- 删除工程内所有 `tsconfig*.json`、`eslint.config.*`、`.spec.swcrc`（统一走根配置）；
+- 在根 `tsconfig.json` 的 `compilerOptions.paths` 中登记新库别名（如
+  `"@app/<name>": ["libs/<name>/src/index.ts"]`），无需 `pnpm nx sync`；
 - `jest.config.cts` 改为 `module.exports = createUnitJestConfig('<displayName>', __dirname)`
   （e2e 工程用 `createE2eJestConfig`），从 `../../jest.shared-config` 引入；
 - app 的 `webpack.config.js` 改为 `createNestAppWebpackConfig({ root: __dirname })`，
@@ -124,5 +128,9 @@ pnpm nx g @nx/nest:library libs/<name> --buildable --importPath=@app/<name> \
   `jest.shared-config.js`（`transformIgnorePatterns` 转译 `@nestjs`）已相应配置，新工程直接复用工厂即可。
 - ESLint 的 `@nx/dependency-checks` 规则：库工程严格校验依赖声明；app 工程因 webpack 外置 node 依赖，
   `@nestjs/platform-express`、`reflect-metadata`、`rxjs`、`tslib` 属隐式运行时依赖（无静态 import），
-  已在根 `eslint.config.mjs` 的 `ignoredDependencies` 中放行。
+  且 `@app/common` 是源码直接消费、无独立 build target 的 workspace 库，均已在根
+  `eslint.config.mjs` 的 app 段 `ignoredDependencies` 中放行（库仍严格校验）。
+- `@nx/js/typescript` 插件在 `nx.json` 中保留（用于分析 TS import 构建项目图依赖边），
+  但关闭了它的 target 推断（`typecheck: false`、`build: false`）——类型检查统一走根 `tsc`，
+  库不再独立 tsc 构建。
 - e2e 工程的 `support/global-teardown.ts` 默认关闭端口需与应用端口一致（api=3000、admin=3001）。

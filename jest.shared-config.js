@@ -36,6 +36,11 @@ function createBaseJestConfig(displayName, projectRoot) {
     displayName,
     preset: resolvePreset(projectRoot),
     testEnvironment: 'node',
+    testEnvironmentOptions: {
+      // 让 @app/common 等 workspace 库走自定义条件解析到 TS 源码（再经 @swc/jest 转译），
+      // 不依赖库预先 tsc 产出 dist；保留 node 默认条件以正常解析第三方包。
+      customExportConditions: ['node', 'node-addons', 'ai-test-nestjs'],
+    },
     transform: {
       '^.+\\.[tj]s$': ['@swc/jest', loadSwcJestConfig()],
     },
