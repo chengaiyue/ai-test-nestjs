@@ -22,14 +22,27 @@
 │   └── admin-e2e/    # admin 的 e2e 测试工程
 ├── libs/
 │   └── common/       # 共享库（CommonModule / CommonService），别名 @app/common
-├── nx.json           # Nx 配置（插件、targetDefaults、namedInputs、缓存）
-├── tsconfig.base.json
+├── nx.json                 # Nx 配置（插件、targetDefaults、namedInputs、缓存）
+├── tsconfig.base.json      # 所有工程 tsconfig 的统一基准（被各工程 extends）
+├── eslint.config.mjs       # 全 workspace 唯一的 ESLint 配置（含 JSON 依赖检查）
+├── jest.preset.js          # @nx/jest 预设
+├── jest.shared-config.js   # Jest 配置工厂（createUnitJestConfig / createE2eJestConfig）
+├── webpack.shared.js       # webpack 配置工厂（createNestAppWebpackConfig）
+├── .spec.swcrc             # Jest spec 文件共用的 SWC 编译配置
 ├── pnpm-workspace.yaml
 └── package.json
 ```
 
 工程配置采用 TS solution 风格：每个工程用自己的 `package.json`（`nx.targets` 内联）描述，
-app 的 webpack 构建在 `<projectRoot>/webpack.config.js`。
+并用各自的 `tsconfig.json` / `jest.config.cts` / `webpack.config.js` 作为 Nx 推断 target 的入口。
+这些入口文件只保留几行薄封装，**实际规则全部收口到根目录共享文件**：
+
+- Jest：`jest.config.cts` 仅调用 `jest.shared-config.js` 的工厂（单测传 `createUnitJestConfig`、
+  e2e 传 `createE2eJestConfig`），SWC 配置统一读根 `.spec.swcrc`。
+- webpack：app 的 `webpack.config.js` 仅调用 `webpack.shared.js` 的 `createNestAppWebpackConfig({ root: __dirname })`。
+- ESLint：子工程不再放 `eslint.config.*`，Nx 自动用根 `eslint.config.mjs` 生成 lint target。
+- tsconfig：各工程 `extends` 根 `tsconfig.base.json`；`outDir`/`rootDir`/`include` 等路径项
+  按 TS 规则必须留在各工程（相对路径相对「定义它的文件」解析）。
 
 ## 快速开始
 
@@ -94,10 +107,22 @@ pnpm nx g @nx/nest:library libs/<name> --buildable --importPath=@app/<name> \
 
 新增库后运行 `pnpm nx sync` 同步 TS project references。
 
+生成器会在每个工程落下各自的 `eslint.config.*`、`.spec.swcrc`、完整 `jest.config.*` / `webpack.config.*`，
+为保持「一套配置」，新工程建好后请把它们收敛为薄封装：
+
+- 删除工程内 `eslint.config.*` 与 `.spec.swcrc`（统一走根配置）；
+- `jest.config.cts` 改为 `module.exports = createUnitJestConfig('<displayName>', __dirname)`
+  （e2e 工程用 `createE2eJestConfig`），从 `../../jest.shared-config` 引入；
+- app 的 `webpack.config.js` 改为 `createNestAppWebpackConfig({ root: __dirname })`，
+  从 `../../webpack.shared` 引入。
+
 ## 已知适配说明
 
 - `@nx/nest@23` 的 peer 依赖范围尚未更新到 Nest 12（声明 `<12.0.0`），插件本身与 Nest 12 兼容，
   已通过根目录 `.npmrc`（`strict-peer-dependencies=false`）放行该 peer 警告。
-- Nest 12 以 ESM 发布，而 Nx 的 Jest 模板按 CJS 运行；各测试工程的
-  `.spec.swcrc`（输出 commonjs）与 `jest.config.cts`（`transformIgnorePatterns` 转译 `@nestjs`）
-  已相应配置，新工程可参考。
+- Nest 12 以 ESM 发布，而 Nx 的 Jest 模板按 CJS 运行；根 `.spec.swcrc`（输出 commonjs）与
+  `jest.shared-config.js`（`transformIgnorePatterns` 转译 `@nestjs`）已相应配置，新工程直接复用工厂即可。
+- ESLint 的 `@nx/dependency-checks` 规则：库工程严格校验依赖声明；app 工程因 webpack 外置 node 依赖，
+  `@nestjs/platform-express`、`reflect-metadata`、`rxjs`、`tslib` 属隐式运行时依赖（无静态 import），
+  已在根 `eslint.config.mjs` 的 `ignoredDependencies` 中放行。
+- e2e 工程的 `support/global-teardown.ts` 默认关闭端口需与应用端口一致（api=3000、admin=3001）。
