@@ -1,0 +1,29 @@
+{
+  "name": "admin-e2e",
+  "version": "0.0.1",
+  "private": true,
+  "devDependencies": {
+    "axios": "^1.6.0"
+  },
+  "nx": {
+    "implicitDependencies": [
+      "admin"
+    ],
+    "targets": {
+      "e2e": {
+        "executor": "@nx/jest:jest",
+        "outputs": [
+          "{projectRoot}/test-output/jest/coverage"
+        ],
+        "dependsOn": [
+          "admin:build",
+          "admin:serve"
+        ],
+        "options": {
+          "jestConfig": "apps/admin-e2e/jest.config.cts",
+          "passWithNoTests": true
+        }
+      }
+    }
+  }
+}

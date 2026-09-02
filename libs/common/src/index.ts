@@ -1,2 +1,2 @@
-export * from './common.module.js';
-export * from './common.service.js';
+export * from './lib/common.module';
+export * from './lib/common.service';
