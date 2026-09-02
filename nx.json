@@ -71,16 +71,6 @@
       "options": {
         "targetName": "lint"
       }
-    },
-    {
-      "plugin": "@nx/jest/plugin",
-      "options": {
-        "targetName": "test"
-      },
-      "exclude": [
-        "apps/api-e2e/**/*",
-        "apps/admin-e2e/**/*"
-      ]
     }
   ]
 }

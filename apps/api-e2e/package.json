@@ -9,12 +9,11 @@
     "implicitDependencies": ["api"],
     "targets": {
       "e2e": {
-        "executor": "@nx/jest:jest",
-        "outputs": ["{workspaceRoot}/coverage/{e2eProjectRoot}"],
+        "executor": "nx:run-commands",
+        "outputs": ["{projectRoot}/test-output/jest/coverage"],
         "dependsOn": ["api:build", "api:serve"],
         "options": {
-          "jestConfig": "apps/api-e2e/jest.config.cts",
-          "passWithNoTests": true
+          "command": "jest --selectProjects api-e2e --passWithNoTests"
         }
       }
     }

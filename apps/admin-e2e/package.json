@@ -11,7 +11,7 @@
     ],
     "targets": {
       "e2e": {
-        "executor": "@nx/jest:jest",
+        "executor": "nx:run-commands",
         "outputs": [
           "{projectRoot}/test-output/jest/coverage"
         ],
@@ -20,8 +20,7 @@
           "admin:serve"
         ],
         "options": {
-          "jestConfig": "apps/admin-e2e/jest.config.cts",
-          "passWithNoTests": true
+          "command": "jest --selectProjects admin-e2e --passWithNoTests"
         }
       }
     }

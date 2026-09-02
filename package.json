@@ -8,7 +8,7 @@
   "packageManager": "pnpm@9.15.9",
   "scripts": {
     "build": "nx run-many -t build",
-    "test": "nx run-many -t test",
+    "test": "jest --selectProjects api admin @app/common",
     "test:e2e": "nx run-many -t e2e",
     "lint": "nx run-many -t lint",
     "serve:api": "nx serve api",

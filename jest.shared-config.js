@@ -33,6 +33,9 @@ const nestEsmTransformIgnorePatterns = [
 
 function createBaseJestConfig(displayName, projectRoot) {
   return {
+    // 显式 rootDir：根配置以 projects 内联方式引用时，每个 project 的相对路径
+    // （preset、globalSetup、coverageDirectory 等）都相对该目录解析。
+    rootDir: projectRoot,
     displayName,
     preset: resolvePreset(projectRoot),
     testEnvironment: 'node',
