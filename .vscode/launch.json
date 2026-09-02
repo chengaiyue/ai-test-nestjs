@@ -6,19 +6,13 @@
       "request": "launch",
       "name": "Debug dryrunapp with Nx",
       "runtimeExecutable": "npx",
-      "runtimeArgs": [
-        "nx",
-        "serve",
-        "dryrunapp"
-      ],
+      "runtimeArgs": ["nx", "serve", "dryrunapp"],
       "env": {
         "NODE_OPTIONS": "--inspect=9229"
       },
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
+      "skipFiles": ["<node_internals>/**"],
       "sourceMaps": true,
       "outFiles": [
         "${workspaceFolder}/apps/dryrunapp/dist/**/*.(m|c|)js",
@@ -30,20 +24,13 @@
       "request": "launch",
       "name": "Debug api with Nx",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": [
-        "exec",
-        "nx",
-        "serve",
-        "api"
-      ],
+      "runtimeArgs": ["exec", "nx", "serve", "api"],
       "env": {
         "NODE_OPTIONS": "--inspect=9230"
       },
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
+      "skipFiles": ["<node_internals>/**"],
       "sourceMaps": true,
       "outFiles": [
         "${workspaceFolder}/apps/api/dist/**/*.(m|c|)js",
@@ -55,23 +42,34 @@
       "request": "launch",
       "name": "Debug admin with Nx",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": [
-        "exec",
-        "nx",
-        "serve",
-        "admin"
-      ],
+      "runtimeArgs": ["exec", "nx", "serve", "admin"],
       "env": {
         "NODE_OPTIONS": "--inspect=9231"
       },
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
+      "skipFiles": ["<node_internals>/**"],
       "sourceMaps": true,
       "outFiles": [
         "${workspaceFolder}/apps/admin/dist/**/*.(m|c|)js",
+        "!**/node_modules/**"
+      ]
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug ai-chat-rag with Nx",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["exec", "nx", "serve", "ai-chat-rag"],
+      "env": {
+        "NODE_OPTIONS": "--inspect=9232"
+      },
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "skipFiles": ["<node_internals>/**"],
+      "sourceMaps": true,
+      "outFiles": [
+        "${workspaceFolder}/apps/ai-chat-rag/dist/**/*.(m|c|)js",
         "!**/node_modules/**"
       ]
     }

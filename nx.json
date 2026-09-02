@@ -2,10 +2,7 @@
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "defaultBase": "main",
   "namedInputs": {
-    "default": [
-      "{projectRoot}/**/*",
-      "sharedGlobals"
-    ],
+    "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "production": [
       "default",
       "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
@@ -15,33 +12,19 @@
       "!{projectRoot}/eslint.config.mjs",
       "!{projectRoot}/test-setup.[jt]s"
     ],
-    "sharedGlobals": [
-      "{workspaceRoot}/tsconfig.json"
-    ]
+    "sharedGlobals": ["{workspaceRoot}/tsconfig.json"]
   },
   "targetDefaults": {
     "build": {
       "cache": true,
-      "dependsOn": [
-        "^build"
-      ],
-      "inputs": [
-        "production",
-        "^production"
-      ],
-      "outputs": [
-        "{projectRoot}/dist"
-      ]
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"],
+      "outputs": ["{projectRoot}/dist"]
     },
     "test": {
       "cache": true,
-      "inputs": [
-        "default",
-        "^production"
-      ],
-      "dependsOn": [
-        "^build"
-      ]
+      "inputs": ["default", "^production"],
+      "dependsOn": ["^build"]
     },
     "lint": {
       "cache": true
@@ -72,5 +55,6 @@
         "targetName": "lint"
       }
     }
-  ]
+  ],
+  "analytics": true
 }
